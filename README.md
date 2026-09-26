@@ -25,6 +25,3 @@ How to Run Tests
 python -m unittest 
 test_task_manager.py
 
-
-After pasting the **whole thing**, 
-tap **Commit changes**. 
