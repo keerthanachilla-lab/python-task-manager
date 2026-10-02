@@ -1,32 +1,52 @@
 import unittest
-from unittest.mock import patch
-import task_manager
+
+from task_manager import TaskManager
+from errors import TaskNotFoundError
 
 
 class TestTaskManager(unittest.TestCase):
 
     def setUp(self):
-        task_manager.tasks.clear()
+        self.manager = TaskManager()
 
-    @patch("builtins.input", return_value="Study Python")
-    def test_add_task(self, mock_input):
-        task_manager.add_task()
-        self.assertIn("Study Python", task_manager.tasks)
+    def test_add_task(self):
+        task = self.manager.add_task("Learn Python")
 
-    def test_view_tasks_empty(self):
-        task_manager.view_tasks()
-        self.assertEqual(task_manager.tasks, [])
+        self.assertEqual(task["id"], 1)
+        self.assertEqual(task["title"], "Learn Python")
+        self.assertFalse(task["completed"])
 
-    @patch("builtins.input", return_value="1")
-    def test_delete_task(self, mock_input):
-        task_manager.tasks.append("Study Python")
-        task_manager.delete_task()
-        self.assertEqual(task_manager.tasks, [])
+    def test_empty_task(self):
+        with self.assertRaises(ValueError):
+            self.manager.add_task("")
 
-    def test_add_multiple_tasks(self):
-        task_manager.tasks.append("Task 1")
-        task_manager.tasks.append("Task 2")
-        self.assertEqual(len(task_manager.tasks), 2)
+    def test_long_task(self):
+        long_title = "A" * 101
+
+        with self.assertRaises(ValueError):
+            self.manager.add_task(long_title)
+
+    def test_complete_task(self):
+        task = self.manager.add_task("Complete Task 4")
+
+        self.manager.complete_task(task["id"])
+
+        self.assertTrue(task["completed"])
+
+    def test_delete_task(self):
+        task = self.manager.add_task("Delete this")
+
+        self.manager.delete_task(task["id"])
+
+        self.assertEqual(len(self.manager.get_tasks()), 0)
+
+    def test_task_not_found(self):
+        with self.assertRaises(TaskNotFoundError):
+            self.manager.get_task(999)
+
+    def test_invalid_task_id(self):
+        with self.assertRaises(ValueError):
+            self.manager.get_task("abc")
 
 
 if __name__ == "__main__":
