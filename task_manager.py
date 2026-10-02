@@ -1,62 +1,59 @@
-tasks = []
+from validation import validate_title, validate_task_id
+from errors import TaskNotFoundError
 
 
-def add_task():
-    task = input("Enter task: ")
-    tasks.append(task)
-    print("Task added successfully!")
+class TaskManager:
+    """Manage tasks for the application."""
 
+    def __init__(self):
+        self.tasks = []
+        self.next_id = 1
 
-def view_tasks():
-    if not tasks:
-        print("No tasks available.")
-    else:
-        print("\n--- TASKS ---")
-        for i, task in enumerate(tasks, start=1):
-            print(f"{i}. {task}")
+    def add_task(self, title):
+        """Add a new task."""
 
+        title = validate_title(title)
 
-def delete_task():
-    view_tasks()
+        task = {
+            "id": self.next_id,
+            "title": title,
+            "completed": False
+        }
 
-    if not tasks:
-        return
+        self.tasks.append(task)
+        self.next_id += 1
 
-    try:
-        number = int(input("Enter task number to delete: "))
+        return task
 
-        if 1 <= number <= len(tasks):
-            deleted = tasks.pop(number - 1)
-            print(f"Deleted: {deleted}")
-        else:
-            print("Invalid task number.")
+    def get_tasks(self):
+        """Return all tasks."""
+        return self.tasks
 
-    except ValueError:
-        print("Please enter a valid number.")
+    def get_task(self, task_id):
+        """Find a task by ID."""
 
+        task_id = validate_task_id(task_id)
 
-def main():
-    while True:
-        print("\n--- TASK MANAGER ---")
-        print("1. Add Task")
-        print("2. View Tasks")
-        print("3. Delete Task")
-        print("4. Exit")
+        for task in self.tasks:
+            if task["id"] == task_id:
+                return task
 
-        choice = input("Enter your choice: ")
+        raise TaskNotFoundError(
+            f"Task with ID {task_id} was not found."
+        )
 
-        if choice == "1":
-            add_task()
-        elif choice == "2":
-            view_tasks()
-        elif choice == "3":
-            delete_task()
-        elif choice == "4":
-            print("Goodbye!")
-            break
-        else:
-            print("Invalid choice. Please try again.")
+    def complete_task(self, task_id):
+        """Mark a task as completed."""
 
+        task = self.get_task(task_id)
+        task["completed"] = True
 
-if __name__ == "__main__":
-    main()
+        return task
+
+    def delete_task(self, task_id):
+        """Delete a task."""
+
+        task = self.get_task(task_id)
+        self.tasks.remove(task)
+
+        return task
